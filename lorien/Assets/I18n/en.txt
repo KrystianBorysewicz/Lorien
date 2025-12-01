@@ -27,6 +27,7 @@ TOOLBAR_TOOLTIP_OPEN_FILE       Open File
 TOOLBAR_TOOLTIP_SAVE_FILE       Save File
 TOOLBAR_TOOLTIP_UNDO            Undo Action
 TOOLBAR_TOOLTIP_REDO            Redo Action
+TOOLBAR_TOOLTIP_TEXT_TOOL       Text Tool
 TOOLBAR_TOOLTIP_BRUSH_TOOL      Brush Tool
 TOOLBAR_TOOLTIP_RECTANGLE_TOOL  Rectangle Tool
 TOOLBAR_TOOLTIP_CIRCLE_TOOL     Circle Tool
@@ -136,6 +137,15 @@ EDIT_PALETTE_DIALOG_TITLE 		Edit Palette
 
 ALERT_EDITING_BUILTIN_PALETTE       Editing built-in palettes is not possible. If you want to customize this palette you can make a copy and edit that instead. # TODO
 ALERT_DELETING_BUILTIN_PALETTE      Deleting built-in palettes is not possible.
+
+# -----------------------------------------------------------------------------
+# Text input dialog
+# -----------------------------------------------------------------------------
+
+TEXT_INPUT_DIALOG_LABEL         Enter text:
+TEXT_INPUT_DIALOG_PLACEHOLDER   Type your text here...
+TEXT_INPUT_DIALOG_CONFIRM       OK
+TEXT_INPUT_DIALOG_CANCEL        Cancel
 
 # -----------------------------------------------------------------------------
 # Generic strings

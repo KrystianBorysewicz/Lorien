@@ -51,7 +51,7 @@ func _ready() -> void:
 	
 	_canvas.mouse_entered.connect(_on_InfiniteCanvas_mouse_entered)
 	_canvas.mouse_exited.connect(_on_InfiniteCanvas_mouse_exited)
-	
+
 	_brush_color_picker.closed.connect(_on_BrushColorPicker_closed)
 	_brush_color_picker.color_changed.connect(_on_BrushColorPicker_color_changed)
 	

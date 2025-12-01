@@ -27,6 +27,7 @@ const BUTTON_NORMAL_COLOR = Color.WHITE
 @onready var _color_button: Button = $Console/Left/ColorButton
 @onready var _brush_size_label: Label = $Console/Left/BrushSizeLabel
 @onready var _brush_size_slider: HSlider = $Console/Left/BrushSizeSlider
+@onready var _tool_btn_text: FlatTextureButton = $Console/Left/TextToolButton
 @onready var _tool_btn_brush: FlatTextureButton = $Console/Left/BrushToolButton
 @onready var _tool_btn_rectangle: FlatTextureButton = $Console/Left/RectangleToolButton
 @onready var _tool_btn_circle: FlatTextureButton = $Console/Left/CircleToolButton
@@ -59,6 +60,7 @@ func _ready() -> void:
 	_save_button.pressed.connect(func() -> void: save_project.emit())
 	_color_button.pressed.connect(func() -> void: toggle_brush_color_picker.emit())
 	_brush_size_slider.value_changed.connect(_on_brush_size_changed)
+	_tool_btn_text.pressed.connect(_on_text_tool_pressed)
 	_tool_btn_brush.pressed.connect(_on_brush_tool_pressed)
 	_tool_btn_rectangle.pressed.connect(_on_rectangle_tool_pressed)
 	_tool_btn_circle.pressed.connect(_on_circle_tool_pressed)
@@ -70,13 +72,14 @@ func _ready() -> void:
 func enable_tool(tool_type: Types.Tool) -> void:
 	var btn: TextureButton
 	match tool_type:
+		Types.Tool.TEXT: btn = _tool_btn_text
 		Types.Tool.BRUSH: btn = _tool_btn_brush
 		Types.Tool.LINE: btn = _tool_btn_line
 		Types.Tool.ERASER: btn = _tool_btn_eraser
 		Types.Tool.SELECT: btn = _tool_btn_selection
 		Types.Tool.RECTANGLE: btn = _tool_btn_rectangle
 		Types.Tool.CIRCLE: btn = _tool_btn_circle
-	
+
 	btn.toggle()
 	_change_active_tool_button(btn)
 	tool_changed.emit(tool_type)
@@ -106,6 +109,7 @@ func _on_keybinding_changed(action: KeybindingsManager.Action) -> void:
 		"shortcut_save_project": _save_button.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_SAVE_FILE"), label]
 		"shortcut_undo": _undo_button.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_UNDO"), label]
 		"shortcut_redo": _redo_button.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_REDO"), label]
+		"shortcut_text_tool": _tool_btn_text.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_TEXT_TOOL"), label]
 		"shortcut_brush_tool": _tool_btn_brush.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_BRUSH_TOOL"), label]
 		"shortcut_rectangle_tool": _tool_btn_rectangle.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_RECTANGLE_TOOL"), label]
 		"shortcut_circle_tool": _tool_btn_circle.tooltip_text = fmt % [tr("TOOLBAR_TOOLTIP_CIRCLE_TOOL"), label]
@@ -137,6 +141,11 @@ func _on_brush_size_changed(value: float) -> void:
 	var new_size := int(value)
 	_brush_size_label.text = "%d" % new_size
 	brush_size_changed.emit(new_size)
+
+# -------------------------------------------------------------------------------------------------
+func _on_text_tool_pressed() -> void:
+	_change_active_tool_button(_tool_btn_text)
+	tool_changed.emit(Types.Tool.TEXT)
 
 # -------------------------------------------------------------------------------------------------
 func _on_brush_tool_pressed() -> void:

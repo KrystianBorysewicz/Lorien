@@ -4,8 +4,10 @@ class_name InfiniteCanvas
 # -------------------------------------------------------------------------------------------------
 const BRUSH_STROKE = preload("res://BrushStroke/BrushStroke.tscn")
 const PLAYER = preload("res://Misc/Player/Player.tscn")
+const IMAGE_ELEMENT = preload("res://InfiniteCanvas/ImageElement/ImageElement.tscn")
 
 # -------------------------------------------------------------------------------------------------
+@onready var _text_tool: TextTool = $TextTool
 @onready var _brush_tool: BrushTool = $BrushTool
 @onready var _rectangle_tool: RectangleTool = $RectangleTool
 @onready var _line_tool: LineTool = $LineTool
@@ -96,7 +98,12 @@ func _process_event(event: InputEvent) -> void:
 	if event.is_action("delete_selected_strokes"):
 		if _active_tool == _selection_tool:
 			_delete_selected_strokes()
-	
+
+	# Handle Ctrl+V for image paste from clipboard
+	if event is InputEventKey && event.pressed && !event.echo:
+		if event.keycode == KEY_V && event.ctrl_pressed:
+			_try_paste_image_from_clipboard()
+
 	if !get_tree().root.get_viewport().is_input_handled():
 		_camera.tool_event(event)
 	if !get_tree().root.get_viewport().is_input_handled():
@@ -115,6 +122,9 @@ func use_tool(tool_type: int) -> void:
 	var prev_status := prev_tool.enabled
 
 	match tool_type:
+		Types.Tool.TEXT:
+			_active_tool = _text_tool
+			_use_optimizer = false
 		Types.Tool.BRUSH:
 			_active_tool = _brush_tool
 			_use_optimizer = true
@@ -349,6 +359,10 @@ func get_camera_offset() -> Vector2:
 	return _camera.offset
 
 # -------------------------------------------------------------------------------------------------
+func get_text_tool() -> TextTool:
+	return _text_tool
+
+# -------------------------------------------------------------------------------------------------
 func _on_zoom_changed(zoom: float) -> void:
 	_current_project.meta_data[ProjectMetadata.CAMERA_ZOOM] = str(zoom)
 	_current_project.dirty = true
@@ -361,13 +375,22 @@ func _on_camera_moved(pos: Vector2) -> void:
 
 # -------------------------------------------------------------------------------------------------
 func _delete_selected_strokes() -> void:
-	var strokes := _selection_tool.get_selected_strokes()
-	if !strokes.is_empty():
+	var elements := _selection_tool.get_selected_elements()
+	if !elements.is_empty():
 		_current_project.undo_redo.create_action("Delete Selection")
-		for stroke: BrushStroke in strokes:
-			_current_project.undo_redo.add_do_method(_do_delete_stroke.bind(stroke))
-			_current_project.undo_redo.add_undo_reference(stroke)
-			_current_project.undo_redo.add_undo_method(_undo_delete_stroke.bind(stroke))
+		for element in elements:
+			if element is BrushStroke:
+				_current_project.undo_redo.add_do_method(_do_delete_stroke.bind(element))
+				_current_project.undo_redo.add_undo_reference(element)
+				_current_project.undo_redo.add_undo_method(_undo_delete_stroke.bind(element))
+			elif element is TextElement:
+				_current_project.undo_redo.add_do_method(_do_delete_element.bind(element))
+				_current_project.undo_redo.add_undo_reference(element)
+				_current_project.undo_redo.add_undo_method(_undo_delete_element.bind(element))
+			elif element is ImageElement:
+				_current_project.undo_redo.add_do_method(_do_delete_element.bind(element))
+				_current_project.undo_redo.add_undo_reference(element)
+				_current_project.undo_redo.add_undo_method(_undo_delete_element.bind(element))
 		_selection_tool.deselect_all_strokes()
 		_current_project.undo_redo.commit_action()
 		_current_project.dirty = true
@@ -375,7 +398,8 @@ func _delete_selected_strokes() -> void:
 # -------------------------------------------------------------------------------------------------
 func _do_delete_stroke(stroke: BrushStroke) -> void:
 	var index := _current_project.strokes.find(stroke)
-	_current_project.strokes.remove_at(index)
+	if index >= 0:
+		_current_project.strokes.remove_at(index)
 	_strokes_parent.remove_child(stroke)
 	info.point_count -= stroke.points.size()
 	info.stroke_count -= 1
@@ -388,3 +412,40 @@ func _undo_delete_stroke(stroke: BrushStroke) -> void:
 	_strokes_parent.add_child(stroke)
 	info.point_count += stroke.points.size()
 	info.stroke_count += 1
+
+# -------------------------------------------------------------------------------------------------
+func _do_delete_element(element: Node2D) -> void:
+	_strokes_parent.remove_child(element)
+
+# -------------------------------------------------------------------------------------------------
+func _undo_delete_element(element: Node2D) -> void:
+	_strokes_parent.add_child(element)
+
+# -------------------------------------------------------------------------------------------------
+func _try_paste_image_from_clipboard() -> void:
+	var clipboard_image := DisplayServer.clipboard_get_image()
+	if clipboard_image != null && !clipboard_image.is_empty():
+		_paste_image(clipboard_image)
+		get_viewport().set_input_as_handled()
+
+# -------------------------------------------------------------------------------------------------
+func _paste_image(img: Image) -> void:
+	var image_element: ImageElement = IMAGE_ELEMENT.instantiate()
+	image_element.set_image_from_image(img)
+
+	# Position at cursor location
+	var cursor_pos := _active_tool.get_cursor().global_position
+	image_element.global_position = cursor_pos - image_element.image_size / 2
+
+	_strokes_parent.add_child(image_element)
+
+	# Switch to selection tool and select the new image
+	use_tool(Types.Tool.SELECT)
+	_selection_tool.deselect_all_strokes()
+	image_element.add_to_group(SelectionTool.GROUP_SELECTED_STROKES)
+	image_element.modulate = Config.DEFAULT_SELECTION_COLOR
+	image_element.is_selected = true
+	image_element.queue_redraw()
+	_selection_tool._cursor.mode = SelectionCursor.Mode.MOVE
+
+	print("Pasted image from clipboard: %dx%d" % [img.get_width(), img.get_height()])

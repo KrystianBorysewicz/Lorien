@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3 uid="uid://c0ral10lvpo7f"]
+[gd_scene load_steps=20 format=3 uid="uid://c0ral10lvpo7f"]
 
 [ext_resource type="Texture2D" uid="uid://c4kv3i7fmom58" path="res://Assets/Icons/save_file.png" id="1"]
 [ext_resource type="Texture2D" uid="uid://dxi6gc6npiskq" path="res://Assets/Icons/open_file.png" id="2"]
@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://see51v4hg68f" path="res://Assets/Icons/redo.png" id="6"]
 [ext_resource type="Texture2D" uid="uid://h54g8ofkc3p8" path="res://Assets/Icons/undo.png" id="7"]
 [ext_resource type="Texture2D" uid="uid://cs5qdaf401w45" path="res://Assets/Icons/brush_tool.png" id="8"]
+[ext_resource type="Texture2D" uid="uid://text_tool_icon" path="res://Assets/Icons/text_tool.png" id="20"]
 [ext_resource type="Texture2D" uid="uid://bynefqnt8pdby" path="res://Assets/Icons/eraser_tool.png" id="9"]
 [ext_resource type="Texture2D" uid="uid://7a3xk8n0q24k" path="res://Assets/Icons/rectangle_tool.png" id="10"]
 [ext_resource type="Texture2D" uid="uid://bn1qdw0v30np0" path="res://Assets/Icons/line_tool.png" id="11"]
@@ -114,6 +115,17 @@ pressed_tint = Color(0.572549, 1, 0.894118, 1)
 [node name="VSeparator3" type="VSeparator" parent="Console/Left"]
 layout_mode = 2
 theme_override_styles/separator = SubResource("3")
+
+[node name="TextToolButton" type="TextureButton" parent="Console/Left"]
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "TOOLBAR_TOOLTIP_TEXT_TOOL"
+toggle_mode = true
+texture_normal = ExtResource("20")
+script = ExtResource("13")
+hover_tint = Color(0.662745, 0.945098, 0.87451, 1)
+pressed_tint = Color(0.572549, 1, 0.894118, 1)
 
 [node name="BrushToolButton" type="TextureButton" parent="Console/Left"]
 layout_mode = 2
